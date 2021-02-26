@@ -99,17 +99,24 @@ class Ui_MainWindow(object):
 
     def loadCsv(self):
         fileName, _ = QFileDialog.getOpenFileName(None, "Open CSV",
-        (QDir.homePath() + "/Dokumente/CSV"), "CSV (*.csv *.tsv *.txt)")
+        (QDir.homePath() + "/Dokumente/CSV"), "CSV (*.csv *.tsv *.txt *.dat)")
         if fileName:
             self.loadCsvOnOpen(fileName)
 
     def loadCsvOnOpen(self, fileName):
         if fileName:
 
-            df = pd.read_csv(fileName, header=None, delimiter='\t', keep_default_na=False, error_bad_lines=False)
-            header = df.iloc[0]
+            probe = pd.read_csv(fileName, header=None, delimiter='\t', keep_default_na=False, error_bad_lines=False)
+            headerProbe = str(probe.iloc[0].values)
+            if headerProbe == "['[Header]']":
+                df = pd.read_csv(fileName, header=None, delimiter=',', skiprows=31, keep_default_na=False, error_bad_lines=False)
+                header = df.iloc[0]
+                df = df[1:]
 
-            df = df[1:]
+            elif headerProbe != "['[Header]']":
+                df = pd.read_csv(fileName, header=None, delimiter=',', keep_default_na=False, error_bad_lines=False)
+                header = df.iloc[0]
+                df = df[1:]
 
             self.tableWidget.setColumnCount(len(df.columns))
             self.tableWidget.setRowCount(len(df.index))
@@ -123,22 +130,22 @@ class Ui_MainWindow(object):
                 self.tableWidget.setHorizontalHeaderItem(j, m)
 
             self.tableWidget.selectRow(0)
-            self.isChanged = False
-
+            self.tableWidget.resizeColumnsToContents()
+            self.tableWidget.resizeRowsToContents()
 
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.checkBox_excitation.setText(_translate("MainWindow", "Excitation (uA)"))
-        self.checkBox_field.setText(_translate("MainWindow", "Magnetic Field (T)"))
-        self.checkBox_ch4.setText(_translate("MainWindow", "Channel 4"))
-        self.checkBox_RES.setText(_translate("MainWindow", "Resistance (ohm)"))
-        self.checkBox_time.setText(_translate("MainWindow", "Timestamp (sec)"))
-        self.checkBox_temp.setText(_translate("MainWindow", "Temperature (K)"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "eDataCleaner"))
         self.checkBox_ch1.setText(_translate("MainWindow", "Channel 1"))
         self.checkBox_ch2.setText(_translate("MainWindow", "Channel 2"))
         self.checkBox_ch3.setText(_translate("MainWindow", "Channel 3"))
+        self.checkBox_ch4.setText(_translate("MainWindow", "Channel 4"))
+        self.checkBox_excitation.setText(_translate("MainWindow", "Excitation (uA)"))
+        self.checkBox_field.setText(_translate("MainWindow", "Magnetic Field (T)"))
+        self.checkBox_RES.setText(_translate("MainWindow", "Resistance (ohm)"))
+        self.checkBox_time.setText(_translate("MainWindow", "Timestamp (sec)"))
+        self.checkBox_temp.setText(_translate("MainWindow", "Temperature (K)"))
         self.checkBox_position.setText(_translate("MainWindow", "Sample position (deg)"))
         self.pushButton_saveMAT.setText(_translate("MainWindow", "Save to .MAT"))
         self.pushButton_saveCSV.setText(_translate("MainWindow", "Save to .CSV"))
